@@ -1,28 +1,36 @@
 # CARSKY
 
-A local Chromebook/Linux phone utility with a dark interface, brand selection, connected-device model detection, corner Back button, and a final-screen **Restart phone** action.
+A local Chromebook/Linux phone manager with live USB detection, Android system-property inspection, restart, and individually selected Android app removal.
 
-## What works
+## Real operations
 
-- Detects Android phones through ADB and reads the actual manufacturer/model from Android system properties (for example, Samsung model identifiers).
-- Detects trusted iPhones through libimobiledevice and reads the device ProductType identifier (for example, iPhone model code).
-- Sends a normal restart command to an Android phone after USB debugging has been authorized.
-- Can request an iPhone restart when the phone is trusted/paired and the installed libimobiledevice version supports diagnostics restart.
-- Back button returns from the action screen to the brand screen, then to Home.
-- The interface runs locally; it does not upload device information.
+- Detects authorized Android devices with ADB and trusted iPhones with libimobiledevice.
+- Reads reported Android manufacturer, model, build fingerprint, build type, Android version and related properties.
+- Labels Samsung-like and iOS-like Android identifiers and reports common custom-ROM/build indicators.
+- Restarts a selected connected phone using ADB or a trusted libimobiledevice pairing.
+- Lists third-party Android packages and removes only the individual package selected by the user. System packages are excluded from this list.
+- Keeps all helper endpoints bound to localhost.
+
+## Optional `docaslails` folder
+
+The `docaslails/` folder contains the extra Android system detector. It is loaded optionally by `server.py`.
+
+**If you delete `docaslails/`, CARSKY still starts and its core features continue to work**: Android/iPhone detection, basic model reporting, restart and Android user-app management. Only extended Android build/system classification and detailed property display are disabled.
+
+The detector reads Android properties reported by the connected device. These can be modified or spoofed, so its labels are clues, not proof that hardware is genuine. An iOS-like Android clone is still managed through the Android/ADB path; it is not treated as a real iPhone.
 
 ## Chromebook setup
 
-1. Open **Settings → Developers → Linux development environment** and start Linux.
-2. Install the USB tools:
+1. Start the Linux development environment.
+2. Install the tools:
 
    ```bash
    sudo apt update
    sudo apt install -y adb usbutils libimobiledevice-utils
    ```
 
-3. Download/clone this repository into Linux.
-4. Start the local helper:
+3. Clone/download this repository into Linux.
+4. Start CARSKY:
 
    ```bash
    python3 server.py
@@ -30,28 +38,13 @@ A local Chromebook/Linux phone utility with a dark interface, brand selection, c
 
 5. Open **http://127.0.0.1:8765** in Chrome.
 
-Keep the terminal running while using CARSKY. If ChromeOS does not expose the phone to Linux, enable USB access for the Linux environment in ChromeOS settings and reconnect the cable.
+Keep the terminal open. ChromeOS must expose the USB device to Linux. Android requires Developer options → USB debugging and approval of the Chromebook's RSA prompt. iPhone requires unlocking it and tapping **Trust This Computer**.
 
-### Android / Samsung
+## Security and unsupported operations
 
-- Enable Developer options and USB debugging on the phone.
-- Connect by a data-capable USB cable.
-- Accept the RSA authorization prompt on the phone.
-- Press Refresh in CARSKY. The exact model is read using ADB; a generic USB name is not used as the model.
-- Restart requires an authorized ADB connection. If the phone is locked and has not previously authorized this Chromebook, ADB may not be available.
-
-### iPhone
-
-- Unlock the iPhone and tap **Trust This Computer** if prompted.
-- Press Refresh. CARSKY displays the Apple ProductType identifier reported by the device; this is a precise hardware identifier, but it may look like `iPhoneXX,Y` rather than a retail name such as “iPhone 15 Pro”.
-- Restart requires a trusted pairing and a compatible `idevicediagnostics` installation. If the phone does not accept the request, restart it manually.
-
-## Important limits
-
-CARSKY does not guess passcodes, bypass device locks, remove Apple Activation Lock, bypass Google FRP or Samsung account verification, or defeat device-management controls. Those protections require the owner's credentials or the manufacturer's official recovery process.
-
-The **UNDISABLE** and **UNLOCK** screens provide official recovery guidance rather than bypasses. **DELETE ALL APPS** does not perform a destructive bulk removal; review and remove apps from the phone itself. **FBOT** is currently an unconfigured placeholder.
-
-## Security
-
-The helper binds only to `127.0.0.1` and uses fixed ADB/libimobiledevice commands. Do not expose this service to your network.
+- **UNDISABLE / UNLOCK:** account and lock protections cannot be removed by this app. These screens identify the official recovery route; no bypass is attempted.
+- **DELETE ALL APPS:** CARSKY does not run a destructive bulk-removal command. It lists user-installed Android apps so each removal can be reviewed and confirmed. iOS app removal is not implemented.
+- **FBOT:** no action is sent because no safe, defined FBOT operation has been configured.
+- Android properties can be spoofed; CARSKY cannot certify a clone or authenticate physical hardware from these values alone.
+- Restart and uninstall require an authorized connection. App removal may erase that app's local data.
+- The helper listens only on `127.0.0.1`; do not expose it to your network.
