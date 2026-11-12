@@ -77,8 +77,8 @@ async function showAction(i,label){
    const inv=data.inventory||{};const fields=["manufacturer","brand","model","device","android_version","sdk","abi","screen","density","storage","memory","battery","kernel"];
    const rows=fields.map(k=>'<div class="app-row"><span class="muted">'+escapeHtml(k.replaceAll("_"," "))+'</span><code>'+escapeHtml(inv[k]||"Not available")+'</code></div>').join("");
    const files=(inv.accessible_scripts||[]).map(x=>'<div class="app-row"><code>'+escapeHtml(x)+'</code></div>').join("")||'<p class="muted">No accessible .sh scripts found in the checked folders.</p>';
-   body.innerHTML='<strong>Device inventory</strong>'+rows+'<div style="margin-top:16px"><strong>Existing accessible scripts</strong><p class="muted">Filenames are inspected only. Unknown scripts are never executed.</p>'+files+'</div><div class="notice" style="margin-top:16px">Generated task: read-only diagnostics. CARSKY transfers the model-labelled script, runs it, then restarts the phone if execution succeeds.</div><details style="margin-top:14px"><summary>Preview generated script</summary><pre style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;color:#cfe2ff">'+escapeHtml(data.script)+'</pre></details><button class="primary" id="runGenerated">INJECT, RUN & RESTART</button><div id="scriptResult" style="margin-top:12px"></div>';
-   $("#runGenerated").addEventListener("click",runGeneratedScript);
+   body.innerHTML='<strong>Device inventory</strong>'+rows+'<div style="margin-top:16px"><strong>Existing accessible scripts</strong><p class="muted">Filenames are inspected only. Unknown scripts are never executed.</p>'+files+'</div><div class="notice" style="margin-top:16px">Generated task: read-only diagnostics. CARSKY transfers the model-labelled script, runs it, then restarts the phone if execution succeeds.</div><details style="margin-top:14px"><summary>Preview generated script</summary><pre style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;color:#cfe2ff">'+escapeHtml(data.script)+'</pre></details><button class="primary" id="sendPhoneCode">SHOW VERIFICATION CODE ON PHONE</button><div id="verification" class="hidden" style="margin-top:14px"><label for="phoneCode" class="muted">Enter the number displayed on your phone (1–99)</label><input id="phoneCode" inputmode="numeric" pattern="[0-9]*" maxlength="2" placeholder="Phone verification number" style="display:block;width:100%;margin-top:8px;padding:14px;border-radius:12px;border:1px solid var(--line);background:#080f1c;color:white;font-size:18px"><button class="primary" id="runGenerated">VERIFY, INJECT, RUN & RESTART</button></div><div id="scriptResult" style="margin-top:12px"></div>';
+   $("#sendPhoneCode").addEventListener("click",startPhoneVerification);
   }catch(e){body.innerHTML='<div class="notice">'+escapeHtml(e.message)+'</div>'}
   return;
  }
@@ -101,11 +101,17 @@ async function showAction(i,label){
  ];
  body.innerHTML='<div class="notice">'+messages[i]+'</div><p class="muted" style="margin-bottom:0">Selected device: '+(selected?escapeHtml(selected.brand+" "+selected.model):"None detected")+'</p>';navigate("action");
 }
+async function startPhoneVerification(){
+ const b=$("#sendPhoneCode");b.disabled=true;b.textContent="SENDING TO PHONE…";$("#scriptResult").textContent="";
+ try{const r=await fetch("/api/script/challenge",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:selected.id,platform:selected.platform})});const data=await r.json();if(!r.ok)throw new Error(data.error||"Could not send verification code.");$("#verification").classList.remove("hidden");$("#phoneCode").value="";$("#scriptResult").innerHTML='<div class="success">'+escapeHtml(data.message)+'</div>'}
+ catch(e){$("#scriptResult").innerHTML='<div class="notice">'+escapeHtml(e.message)+'</div>'}
+ b.disabled=false;b.textContent="RESEND PHONE VERIFICATION CODE";
+}
 async function runGeneratedScript(){
  if(!selected||!confirm("Transfer and run the read-only diagnostic script on "+selected.model+"? The phone will restart after successful execution."))return;
  const b=$("#runGenerated");b.disabled=true;b.textContent="TRANSFERRING & RUNNING…";
- try{const r=await fetch("/api/script/run",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:selected.id,platform:selected.platform})});const data=await r.json();if(!r.ok)throw new Error(data.error||"Script failed.");$("#scriptResult").innerHTML='<div class="success">'+escapeHtml(data.message)+'<br>Report: '+escapeHtml(data.report)+'</div>'}
- catch(e){$("#scriptResult").innerHTML='<div class="notice">'+escapeHtml(e.message)+'</div>';b.disabled=false;b.textContent="INJECT, RUN & RESTART"}
+ try{const r=await fetch("/api/script/run",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:selected.id,platform:selected.platform,code:$("#phoneCode").value})});const data=await r.json();if(!r.ok)throw new Error(data.error||"Script failed.");$("#scriptResult").innerHTML='<div class="success">'+escapeHtml(data.message)+'<br>Report: '+escapeHtml(data.report)+'</div>'}
+ catch(e){$("#scriptResult").innerHTML='<div class="notice">'+escapeHtml(e.message)+'</div>';b.disabled=false;b.textContent="VERIFY, INJECT, RUN & RESTART"}
 }
 async function uninstallApp(pkg,button){
  if(!selected||!confirm("Remove "+pkg+" from this phone? Its local app data may be deleted."))return;
