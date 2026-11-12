@@ -2,11 +2,6 @@ name: Build CARSKY verification app
 on:
   workflow_dispatch:
   push:
-    paths:
-      - 'companion/**'
-      - 'build.gradle'
-      - 'settings.gradle'
-      - '.github/workflows/build-companion.yml'
 jobs:
   build:
     runs-on: ubuntu-latest
