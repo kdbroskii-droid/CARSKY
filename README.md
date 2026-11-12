@@ -1,13 +1,13 @@
 # CARSKY
 
-A local Chromebook/Linux phone manager with live USB detection, Android system-property inspection, restart, and individually selected Android app removal.
+A local Chromebook/Linux phone manager with live USB detection, Android device inventory, generated diagnostic scripts, restart, and individually selected Android app removal.
 
 ## Real operations
 
 - Detects authorized Android devices with ADB and trusted iPhones with libimobiledevice.
 - Reads reported Android manufacturer, model, build fingerprint, build type, Android version and related properties.
 - Labels Samsung-like and iOS-like Android identifiers and reports common custom-ROM/build indicators.
-- Restarts a selected connected phone using ADB or a trusted libimobiledevice pairing.
+- Inspects Android model/build details, display, memory, storage, battery, kernel and accessible script filenames.\n- Generates a model-labelled, read-only diagnostic script, previews it, transfers it to `/data/local/tmp`, executes it through authorized ADB, and restarts the phone only after successful execution. The report is saved in Downloads.\n- Existing scripts are inventoried by filename only; unknown scripts are never executed.\n- Restarts a selected connected phone using ADB or a trusted libimobiledevice pairing.
 - Lists third-party Android packages and removes only the individual package selected by the user. System packages are excluded from this list.
 - Keeps all helper endpoints bound to localhost.
 
