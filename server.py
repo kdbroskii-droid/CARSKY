@@ -226,15 +226,21 @@ class Handler(BaseHTTPRequestHandler):
                 code = secrets.randbelow(99) + 1
                 # A short-lived, single-use challenge tied to this exact ADB serial.
                 PHONE_CHALLENGES[device_id] = {"code":code, "expires":time.monotonic()+120, "attempts":0}
-                title = "CARSKY phone verification"
-                message = "Your CARSKY code is " + str(code) + ". Enter it on your Chromebook."
-                ok, output, error = checked(["adb","-s",device_id,"shell","cmd","notification","post",
-                                             "-t",title,"carsky-verify",message], timeout=12)
-                if not ok:
+                # The companion app displays a visible activity over the lock screen.
+                # It does not dismiss the keyguard or change device security.
+                package_path = run(["adb","-s",device_id,"shell","pm","path","com.carsky.verify"])
+                if not package_path:
                     PHONE_CHALLENGES.pop(device_id, None)
-                    self.send_json(501, {"error":"This Android version did not accept CARSKY's verification notification. No script was transferred. " + (error or output)})
+                    self.send_json(409, {"error":"Install the CARSKY Verification companion APK first. Download the carskey-verification-apk artifact from this repository's Actions run, then install it with: adb install companion-debug.apk"})
                     return
-                self.send_json(200, {"ok":True,"message":"Verification notification sent to the phone. Enter the number shown there within 2 minutes."})
+                ok, output, error = checked(["adb","-s",device_id,"shell","am","start","-W",
+                                             "-n","com.carsky.verify/.VerificationActivity",
+                                             "--es","code",str(code)], timeout=15)
+                if not ok or "Error" in output:
+                    PHONE_CHALLENGES.pop(device_id, None)
+                    self.send_json(502, {"error":"Android could not open the CARSKY lock-screen verification screen. No script was transferred. " + (error or output)})
+                    return
+                self.send_json(200, {"ok":True,"message":"CARSKY verification screen opened on the phone. Enter its number on your Chromebook within 2 minutes."})
                 return
 
             if route == "/api/script/run":
