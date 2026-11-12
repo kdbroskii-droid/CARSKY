@@ -1,15 +1,38 @@
 # CARSKY
 
-A local Chromebook/Linux phone manager with live USB detection, Android device inventory, generated diagnostic scripts, restart, and individually selected Android app removal.
+A local Chromebook/Linux phone manager with USB detection, Android device inventory, generated diagnostic scripts, restart, and individually selected Android app removal.
 
 ## Real operations
 
 - Detects authorized Android devices with ADB and trusted iPhones with libimobiledevice.
 - Reads reported Android manufacturer, model, build fingerprint, build type, Android version and related properties.
 - Labels Samsung-like and iOS-like Android identifiers and reports common custom-ROM/build indicators.
-- Inspects Android model/build details, display, memory, storage, battery, kernel and accessible script filenames.\n- Generates a model-labelled, read-only diagnostic script and previews it. Before transfer, CARSKY sends a random 1–99 verification number to the Android phone as a system notification. The user must enter that number on the Chromebook within 2 minutes (maximum 3 attempts). Only then does CARSKY transfer the script to `/data/local/tmp`, execute it through authorized ADB, and restart the phone after successful execution. The report is saved in Downloads.\n- Existing scripts are inventoried by filename only; unknown scripts are never executed.\n- Restarts a selected connected phone using ADB or a trusted libimobiledevice pairing.
+- Inspects Android model/build details, display, memory, storage, battery, kernel and accessible script filenames.
+- Generates a model-labelled, read-only diagnostic script and previews it.
+- Before transfer, CARSKY opens the **CARSKY Verification companion app** on the Android phone. The app displays a random 1–99 code in a full-screen activity designed to appear over the lock screen. Enter the code on the Chromebook within 2 minutes (maximum 3 attempts). Only then does CARSKY transfer and run the diagnostic script and request a restart after successful execution.
+- The verification activity does not dismiss the keyguard, unlock the phone, change its passcode, or bypass device security. Android version, manufacturer restrictions, and lock-screen policy may prevent an activity from appearing over the keyguard.
+- Existing scripts are inventoried by filename only; unknown scripts are never executed.
+- Restarts a selected connected phone using ADB or a trusted libimobiledevice pairing.
 - Lists third-party Android packages and removes only the individual package selected by the user. System packages are excluded from this list.
-- Keeps all helper endpoints bound to localhost.
+- Keeps helper endpoints bound to localhost.
+
+## Install the verification companion app
+
+The lock-screen verification screen requires the companion APK to be installed on the Android phone once.
+
+1. Open this repository on GitHub and select **Actions**.
+2. Open the latest **Build CARSKY verification app** workflow run.
+3. Download the `carskey-verification-apk` artifact and extract `companion-debug.apk`.
+4. Connect the Android phone with USB debugging enabled and authorized.
+5. Install the APK from the Chromebook Linux terminal:
+
+   ```bash
+   adb install companion-debug.apk
+   ```
+
+6. Start CARSKY and use **DEVICE SCRIPT BUILDER**. When you request verification, CARSKY launches the companion activity on the phone.
+
+The activity is a visible screen, not a notification. It uses Android's show-when-locked activity feature and leaves the actual keyguard in place. Some manufacturers or security states may block apps from appearing over the lock screen. If that happens, unlock the phone normally and retry; CARSKY will not bypass the lock.
 
 ## Optional `docaslails` folder
 
