@@ -1,97 +1,104 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#080b12">
-<title>CARSKY</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#080b12"><title>CARSKY</title>
 <style>
-:root{color-scheme:dark;--bg:#080b12;--panel:#111827;--panel2:#172235;--line:#27364d;--blue:#5b9cff;--muted:#9aa9bd;--white:#f4f7fc}
+:root{color-scheme:dark;--bg:#080b12;--panel:#111827;--line:#27364d;--blue:#5b9cff;--muted:#9aa9bd;--white:#f4f7fc}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -20%,#1b3457 0,transparent 45%),var(--bg);color:var(--white);font:15px Inter,system-ui,Arial,sans-serif;min-height:100vh}
 header{height:72px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid #ffffff12;position:relative;padding:0 18px}
 .logo{font-weight:900;letter-spacing:.2em;font-size:20px}.logo span{color:var(--blue)}
 #back{position:absolute;left:16px;top:17px;border:1px solid var(--line);background:#111827;color:white;border-radius:12px;padding:10px 13px;cursor:pointer;display:none}
-main{width:min(680px,100%);margin:0 auto;padding:28px 18px 56px}.eyebrow{color:var(--blue);font-size:11px;letter-spacing:.18em;font-weight:800}.heading{font-size:30px;letter-spacing:-.04em;margin:8px 0}.sub{color:var(--muted);line-height:1.55;margin:0 0 24px}
+main{width:min(720px,100%);margin:0 auto;padding:28px 18px 56px}.eyebrow{color:var(--blue);font-size:11px;letter-spacing:.18em;font-weight:800}.heading{font-size:30px;letter-spacing:-.04em;margin:8px 0}.sub{color:var(--muted);line-height:1.55;margin:0 0 24px}
 .panel{background:linear-gradient(145deg,#131e30,#0e1522);border:1px solid var(--line);border-radius:20px;padding:18px;margin:14px 0}
-.brand-list{display:grid;gap:12px}.brand{display:flex;align-items:center;gap:16px;width:100%;padding:18px;border-radius:16px;border:1px solid var(--line);background:#111a29;color:var(--white);font-weight:850;letter-spacing:.08em;text-align:left;cursor:pointer}
+.brand-list,.actions{display:grid;gap:12px}.brand{display:flex;align-items:center;gap:16px;width:100%;padding:18px;border-radius:16px;border:1px solid var(--line);background:#111a29;color:var(--white);font-weight:850;letter-spacing:.08em;text-align:left;cursor:pointer}
 .brand:hover,.action:hover{border-color:var(--blue);background:#17263c}.brandmark{width:42px;height:42px;border-radius:12px;background:#1d2d45;display:grid;place-items:center;font-size:20px;color:#cfe2ff}
-.actions{display:grid;gap:10px}.action{padding:17px 16px;border-radius:14px;background:#111a29;color:white;border:1px solid var(--line);font-weight:800;letter-spacing:.04em;text-align:left;cursor:pointer}
+.action{padding:17px 16px;border-radius:14px;background:#111a29;color:white;border:1px solid var(--line);font-weight:800;letter-spacing:.04em;text-align:left;cursor:pointer}
 button:focus-visible{outline:2px solid var(--blue);outline-offset:3px}.device{display:flex;align-items:center;justify-content:space-between;gap:12px}.device strong{display:block}.device small{color:var(--muted)}.pill{font-size:11px;color:#9bc5ff;border:1px solid #355a8d;padding:5px 8px;border-radius:99px;white-space:nowrap}
 .primary{background:var(--blue);border:0;color:#07111f;font-weight:900;padding:15px 18px;border-radius:13px;width:100%;cursor:pointer;margin-top:12px}
-.secondary{background:#172235;border:1px solid var(--line);color:white;padding:12px 15px;border-radius:12px;cursor:pointer}
+.secondary,.remove{background:#172235;border:1px solid var(--line);color:white;padding:10px 13px;border-radius:10px;cursor:pointer}
 .notice{background:#201d16;border:1px solid #67512b;color:#f2d9a5;border-radius:14px;padding:14px;line-height:1.5}.success{background:#10251f;border:1px solid #28664f;color:#b7f2d8;border-radius:14px;padding:14px;line-height:1.5}
-.muted{color:var(--muted);font-size:13px;line-height:1.5}.hidden{display:none!important}.row{display:flex;align-items:center;justify-content:space-between;gap:12px}.center{text-align:center}.spinner{display:inline-block;width:13px;height:13px;border:2px solid #789ac3;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
-footer{text-align:center;color:#718198;font-size:11px;padding:20px}
-</style>
-</head>
-<body>
+.muted{color:var(--muted);font-size:13px;line-height:1.5}.hidden{display:none!important}.row{display:flex;align-items:center;justify-content:space-between;gap:12px}.app-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-top:1px solid #ffffff12;overflow-wrap:anywhere}.app-row code{font-size:12px;color:#dce8fa}.spinner{display:inline-block;width:13px;height:13px;border:2px solid #789ac3;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}footer{text-align:center;color:#718198;font-size:11px;padding:20px}
+</style></head><body>
 <header><button id="back" aria-label="Go back">← Back</button><div class="logo">CAR<span>SKY</span></div></header>
 <main>
-<section id="home">
- <div class="eyebrow">USB DEVICE MANAGER</div><h1 class="heading">Choose a device</h1>
- <p class="sub">Connect a phone to your Chromebook, then select its brand. CARSKY will read the connected device details where the USB tools allow it.</p>
- <div class="brand-list">
-  <button class="brand" data-brand="apple"><span class="brandmark">●</span> APPLE / IPHONE</button>
-  <button class="brand" data-brand="samsung"><span class="brandmark">S</span> SAMSUNG</button>
-  <button class="brand" data-brand="android"><span class="brandmark">A</span> ANDROID</button>
- </div>
- <div class="panel"><div class="row"><strong>Connected devices</strong><button class="secondary" id="refresh">Refresh</button></div><div id="deviceList" class="muted" style="margin-top:12px">Checking USB devices…</div></div>
- <p class="muted">Android needs USB debugging enabled and the Chromebook authorized. iPhone detection needs the phone unlocked and trusted by the computer.</p>
-</section>
-<section id="brandScreen" class="hidden">
- <div class="eyebrow" id="brandEyebrow">DEVICE</div><h1 class="heading" id="brandTitle">IPHONE</h1><p class="sub" id="brandSub">Detected device information appears below.</p>
- <div class="panel" id="selectedDevice"><div class="muted">No compatible connected device selected.</div></div>
- <div class="actions" id="actionList"></div>
-</section>
-<section id="actionScreen" class="hidden">
- <div class="eyebrow">ACTION DETAILS</div><h1 class="heading" id="actionTitle"></h1>
- <div id="actionBody" class="panel"></div>
- <div class="panel"><strong>Restart connected phone</strong><p class="muted">This sends a normal restart command to the selected phone. It does not erase data or remove account locks.</p><button class="primary" id="restart">RESTART PHONE</button><div id="restartResult" style="margin-top:12px"></div></div>
-</section>
-</main>
-<footer>CARSKY · Local device helper · Nothing is uploaded</footer>
+<section id="home"><div class="eyebrow">USB DEVICE MANAGER</div><h1 class="heading">Choose a device</h1>
+<p class="sub">Connect a phone to your Chromebook, then choose its brand. Device details and supported controls are read from the connected phone.</p>
+<div class="brand-list">
+<button class="brand" data-brand="apple"><span class="brandmark">●</span> APPLE / IPHONE</button>
+<button class="brand" data-brand="samsung"><span class="brandmark">S</span> SAMSUNG</button>
+<button class="brand" data-brand="android"><span class="brandmark">A</span> ANDROID</button></div>
+<div class="panel"><div class="row"><strong>Connected devices</strong><button class="secondary" id="refresh">Refresh</button></div><div id="deviceList" class="muted" style="margin-top:12px">Checking USB devices…</div></div>
+<p class="muted">Android requires USB debugging authorization. iPhone detection requires a trusted pairing.</p></section>
+<section id="brandScreen" class="hidden"><div class="eyebrow" id="brandEyebrow">DEVICE</div><h1 class="heading" id="brandTitle">IPHONE</h1><p class="sub" id="brandSub"></p><div class="panel" id="selectedDevice"></div><div class="actions" id="actionList"></div></section>
+<section id="actionScreen" class="hidden"><div class="eyebrow">DEVICE CONTROL</div><h1 class="heading" id="actionTitle"></h1><div id="actionBody" class="panel"></div>
+<div class="panel"><strong>Restart connected phone</strong><p class="muted">Sends a normal restart command. It does not erase data or remove account locks.</p><button class="primary" id="restart">RESTART PHONE</button><div id="restartResult" style="margin-top:12px"></div></div></section>
+</main><footer>CARSKY · Local device manager · Device data stays on this computer</footer>
 <script>
-const $=s=>document.querySelector(s);
-let devices=[],selected=null,brand=null,screen="home";
+const $=s=>document.querySelector(s);let devices=[],selected=null,brand=null,screen="home";
 const screens={home:$("#home"),brand:$("#brandScreen"),action:$("#actionScreen")};
 function navigate(next){screen=next;Object.entries(screens).forEach(([k,v])=>v.classList.toggle("hidden",k!==next));$("#back").style.display=next==="home"?"none":"block"}
-$("#back").addEventListener("click",()=>{if(screen==="action")navigate("brand");else navigate("home")});
+$("#back").addEventListener("click",()=>navigate(screen==="action"?"brand":"home"));
+function escapeHtml(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function isBrand(d,b){if(b==="apple")return d.platform==="apple";if(b==="samsung")return d.platform==="android"&&/samsung/i.test(d.brand);return d.platform==="android"&&!/samsung/i.test(d.brand)}
 async function refresh(){
  $("#deviceList").innerHTML='<span class="spinner"></span> Checking connected devices…';
- try{
-  const r=await fetch("/api/devices");const data=await r.json();devices=data.devices||[];
-  $("#deviceList").innerHTML=devices.length?devices.map(d=>'<div class="device" style="padding:10px 0;border-top:1px solid #ffffff12"><div><strong>'+escapeHtml(d.brand+" "+d.model)+'</strong><small>'+escapeHtml(d.name)+" · "+(d.platform==="apple"?"iPhone":"Android")+'</small></div><span class="pill">DETECTED</span></div>').join(""):'No supported phone detected. Check the USB cable, unlock the phone and press Refresh.';
-  if(selected){selected=devices.find(d=>d.id===selected.id)||null;if(!selected&&screen!=="home")navigate("home")}
- }catch(e){$("#deviceList").textContent="CARSKY helper is not running. Start server.py in the Chromebook Linux terminal, then refresh this page."}
+ try{const r=await fetch("/api/devices");const data=await r.json();devices=data.devices||[];
+ $("#deviceList").innerHTML=devices.length?devices.map(d=>'<div class="device" style="padding:10px 0;border-top:1px solid #ffffff12"><div><strong>'+escapeHtml(d.brand+" "+d.model)+'</strong><small>'+escapeHtml(d.name)+" · "+(d.platform==="apple"?"iPhone":"Android")+'</small></div><span class="pill">DETECTED</span></div>').join(""):'No supported phone detected. Check the USB cable, unlock the phone and press Refresh.';
+ if(selected){selected=devices.find(d=>d.id===selected.id)||null;if(!selected&&screen!=="home")navigate("home")}
+ }catch(e){$("#deviceList").textContent="CARSKY helper is not running. Start server.py, then refresh."}
 }
-function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function isBrand(d,b){if(b==="apple")return d.platform==="apple";if(b==="samsung")return d.platform==="android"&&/samsung/i.test(d.brand);return d.platform==="android"&&!/samsung/i.test(d.brand)}
 document.querySelectorAll("[data-brand]").forEach(btn=>btn.addEventListener("click",()=>{
- brand=btn.dataset.brand;selected=devices.find(d=>isBrand(d,brand))||null;
- const names={apple:"IPHONE",samsung:"SAMSUNG",android:"ANDROID"};$("#brandTitle").textContent=names[brand];$("#brandEyebrow").textContent="CONNECTED "+names[brand];$("#brandSub").textContent=selected?"Connected device detected. Confirm the model below.":"No matching phone is currently detected. Connect it and press Refresh.";
- $("#selectedDevice").innerHTML=selected?'<div class="device"><div><strong>'+escapeHtml(selected.brand+" "+selected.model)+'</strong><small>'+escapeHtml(selected.name)+'</small></div><span class="pill">CONNECTED</span></div>':'<div class="muted">No matching device. Connect the phone, unlock it, authorize the computer if prompted, then use Refresh.</div>';
- const suffix=names[brand];const actions=["UNDISABLE "+suffix,"UNLOCK "+suffix,"DELETE ALL APPS","FBOT"];
+ brand=btn.dataset.brand;selected=devices.find(d=>isBrand(d,brand))||null;const names={apple:"IPHONE",samsung:"SAMSUNG",android:"ANDROID"},suffix=names[brand];
+ $("#brandTitle").textContent=suffix;$("#brandEyebrow").textContent="CONNECTED "+suffix;
+ $("#brandSub").textContent=selected?"Connected device detected. Live device details are shown below.":"No matching phone detected. Connect it and press Refresh.";
+ $("#selectedDevice").innerHTML=selected?deviceDetails(selected):'<div class="muted">No matching device. Connect and authorize it, then use Refresh.</div>';
+ const actions=["UNDISABLE "+suffix,"UNLOCK "+suffix,"DELETE ALL APPS","FBOT"];
  $("#actionList").innerHTML=actions.map((a,i)=>'<button class="action" data-action="'+i+'">'+a+' <span style="float:right;color:#7daeea">→</span></button>').join("");
  $("#actionList").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>showAction(Number(b.dataset.action),b.textContent.replace("→","").trim())));
  navigate("brand");
 }));
-function showAction(i,label){
+function deviceDetails(d){
+ let html='<div class="device"><div><strong>'+escapeHtml(d.brand+" "+d.model)+'</strong><small>'+escapeHtml(d.name)+'</small></div><span class="pill">CONNECTED</span></div>';
+ const s=d.system_details||{};html+='<div style="margin-top:14px"><strong>System detection</strong><p class="muted">'+escapeHtml(s.classification||s.status||"No extended details")+'</p>';
+ if(s.system)html+='<p class="muted">'+escapeHtml(s.system)+'</p>';
+ if(s.warning)html+='<div class="notice">'+escapeHtml(s.warning)+'</div>';
+ if(s.properties){html+='<details style="margin-top:12px"><summary>Reported system properties</summary>';for(const [k,v] of Object.entries(s.properties))html+='<div class="app-row"><span class="muted">'+escapeHtml(k)+'</span><code>'+escapeHtml(v)+'</code></div>';html+='</details>'}
+ return html+'</div>';
+}
+async function showAction(i,label){
  $("#actionTitle").textContent=label;$("#restartResult").textContent="";$("#restart").disabled=!selected;
- const texts=[
-  "If the phone is disabled, use the manufacturer's official recovery process. CARSKY does not bypass passcodes, Activation Lock, Google Factory Reset Protection or Samsung account verification.",
-  "Use the official Apple, Google or Samsung account recovery process for a forgotten passcode or account lock. A factory reset may erase data and does not remove Activation Lock or FRP.",
-  "For safety, CARSKY does not bulk-delete apps. Remove apps from the phone's own Settings screen so you can review each app before deleting it.",
-  "FBOT has no configured device operation yet. No command will be sent."
+ const body=$("#actionBody");
+ if(i===2){
+  if(!selected||selected.platform!=="android"){body.innerHTML='<div class="notice">App removal is available for connected, authorized Android devices. iOS app management is not supported by this USB helper.</div>';navigate("action");return}
+  body.innerHTML='<strong>Installed user apps</strong><p class="muted">Choose apps individually. System apps are excluded. Removing an app can delete its local data.</p><div class="muted"><span class="spinner"></span> Loading apps…</div>';navigate("action");
+  try{const r=await fetch("/api/apps?id="+encodeURIComponent(selected.id));const data=await r.json();if(!r.ok)throw new Error(data.error||"Could not load apps.");
+   if(!data.apps.length){body.innerHTML='<p class="muted">No removable user-installed apps were reported.</p>';return}
+   body.innerHTML='<strong>Installed user apps ('+data.apps.length+')</strong><p class="muted">Select an app to remove it. CARSKY does not remove system apps or run a bulk-delete command.</p><div id="appRows"></div>';
+   $("#appRows").innerHTML=data.apps.map(p=>'<div class="app-row"><code>'+escapeHtml(p)+'</code><button class="remove" data-package="'+escapeHtml(p)+'">REMOVE</button></div>').join("");
+   $("#appRows").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>uninstallApp(b.dataset.package,b)));
+  }catch(e){body.innerHTML='<div class="notice">'+escapeHtml(e.message)+'</div>'}
+  return;
+ }
+ const messages=[
+ "This action is not a lock bypass. If Android or iPhone is disabled, use the manufacturer's supported recovery process. CARSKY will not defeat a passcode, Activation Lock, FRP or account verification.",
+ "Account and activation locks must be cleared with the account holder's credentials or the manufacturer's official recovery process. A factory reset does not remove these protections.",
+ "Select a user-installed Android app above to remove it individually.",
+ "FBOT has no defined operation or connected service configured, so CARSKY will not send an unknown command."
  ];
- $("#actionBody").innerHTML='<div class="notice">'+texts[i]+'</div><p class="muted" style="margin-bottom:0">Selected device: '+(selected?escapeHtml(selected.brand+" "+selected.model):"None detected")+'</p>';
- navigate("action");
+ body.innerHTML='<div class="notice">'+messages[i]+'</div><p class="muted" style="margin-bottom:0">Selected device: '+(selected?escapeHtml(selected.brand+" "+selected.model):"None detected")+'</p>';navigate("action");
+}
+async function uninstallApp(pkg,button){
+ if(!selected||!confirm("Remove "+pkg+" from this phone? Its local app data may be deleted."))return;
+ button.disabled=true;button.textContent="REMOVING…";
+ try{const r=await fetch("/api/uninstall",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:selected.id,platform:selected.platform,package:pkg})});const data=await r.json();if(!r.ok)throw new Error(data.error||"Removal failed.");button.closest(".app-row").remove();const note=document.createElement("div");note.className="success";note.textContent=data.message;$("#actionBody").prepend(note)}
+ catch(e){button.disabled=false;button.textContent="REMOVE";alert(e.message)}
 }
 $("#restart").addEventListener("click",async()=>{
  if(!selected)return;const b=$("#restart");b.disabled=true;b.textContent="SENDING…";$("#restartResult").textContent="";
  try{const r=await fetch("/api/restart",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:selected.id,platform:selected.platform})});const data=await r.json();$("#restartResult").innerHTML=r.ok?'<div class="success">'+escapeHtml(data.message)+'</div>':'<div class="notice">'+escapeHtml(data.error||"Restart failed")+'</div>'}
- catch(e){$("#restartResult").innerHTML='<div class="notice">Could not reach the local helper. Check that server.py is still running.</div>'}
+ catch(e){$("#restartResult").innerHTML='<div class="notice">Could not reach the local helper. Check that server.py is running.</div>'}
  b.disabled=false;b.textContent="RESTART PHONE";
 });
 $("#refresh").addEventListener("click",refresh);refresh();
-</script>
-</body></html>
+</script></body></html>
