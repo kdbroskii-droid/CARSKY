@@ -22,7 +22,7 @@ The lock-screen verification screen requires the companion APK to be installed o
 
 1. Open this repository on GitHub and select **Actions**.
 2. Open the latest **Build CARSKY verification app** workflow run.
-3. Download the `carskey-verification-apk` artifact and extract `companion-debug.apk`.
+3. Download the `carsky-verification-apk` artifact and extract `companion-debug.apk`.
 4. Connect the Android phone with USB debugging enabled and authorized.
 5. Install the APK from the Chromebook Linux terminal:
 
