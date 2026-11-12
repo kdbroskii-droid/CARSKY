@@ -12,6 +12,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 public final class VerificationActivity extends Activity {
+    // Visible lock-screen confirmation; the Android keyguard remains active.
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
