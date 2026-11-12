@@ -5,12 +5,15 @@ import json
 import re
 import shutil
 import subprocess
+import secrets
+import time
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 
 HOST = "127.0.0.1"
 PORT = 8765
 ROOT = Path(__file__).resolve().parent
+PHONE_CHALLENGES = {}
 
 # Optional extension: deleting docaslails/ disables only extended system
 # fingerprinting. Core detection, restart and app management still run.
@@ -216,10 +219,44 @@ class Handler(BaseHTTPRequestHandler):
             if not device_id or platform not in ("android", "apple"):
                 raise ValueError("Choose a detected device first")
 
+            if route == "/api/script/challenge":
+                if platform != "android" or not get_android_device(device_id):
+                    self.send_json(409, {"error":"Phone verification requires a connected, authorized Android device."})
+                    return
+                code = secrets.randbelow(99) + 1
+                # A short-lived, single-use challenge tied to this exact ADB serial.
+                PHONE_CHALLENGES[device_id] = {"code":code, "expires":time.monotonic()+120, "attempts":0}
+                title = "CARSKY phone verification"
+                message = "Your CARSKY code is " + str(code) + ". Enter it on your Chromebook."
+                ok, output, error = checked(["adb","-s",device_id,"shell","cmd","notification","post",
+                                             "-t",title,"carsky-verify",message], timeout=12)
+                if not ok:
+                    PHONE_CHALLENGES.pop(device_id, None)
+                    self.send_json(501, {"error":"This Android version did not accept CARSKY's verification notification. No script was transferred. " + (error or output)})
+                    return
+                self.send_json(200, {"ok":True,"message":"Verification notification sent to the phone. Enter the number shown there within 2 minutes."})
+                return
+
             if route == "/api/script/run":
                 if platform != "android" or not get_android_device(device_id):
                     self.send_json(409, {"error":"Generated scripts require a connected, authorized Android device."})
                     return
+                challenge = PHONE_CHALLENGES.get(device_id)
+                supplied = str(body.get("code", "")).strip()
+                if not challenge or time.monotonic() > challenge["expires"]:
+                    PHONE_CHALLENGES.pop(device_id, None)
+                    self.send_json(403, {"error":"Phone verification expired. Request a new code."})
+                    return
+                if not supplied.isdigit() or int(supplied) != challenge["code"]:
+                    challenge["attempts"] += 1
+                    if challenge["attempts"] >= 3:
+                        PHONE_CHALLENGES.pop(device_id, None)
+                        self.send_json(403, {"error":"Too many incorrect codes. Request a new verification code."})
+                    else:
+                        self.send_json(403, {"error":"That code does not match. Try again."})
+                    return
+                # Consume the challenge before any transfer or execution.
+                PHONE_CHALLENGES.pop(device_id, None)
                 script = build_diagnostic_script(get_android_device(device_id))
                 local_script = ROOT / "carsky_generated_diagnostic.sh"
                 try:
