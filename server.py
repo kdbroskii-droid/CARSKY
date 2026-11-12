@@ -80,6 +80,67 @@ def get_android_device(serial):
     return next((d for d in android_devices() if d["id"] == serial), None)
 
 
+def android_inventory(serial):
+    """Read public device details and inventory accessible script filenames."""
+    commands = {
+        "manufacturer": ["shell","getprop","ro.product.manufacturer"],
+        "brand": ["shell","getprop","ro.product.brand"],
+        "model": ["shell","getprop","ro.product.model"],
+        "device": ["shell","getprop","ro.product.device"],
+        "android_version": ["shell","getprop","ro.build.version.release"],
+        "sdk": ["shell","getprop","ro.build.version.sdk"],
+        "fingerprint": ["shell","getprop","ro.build.fingerprint"],
+        "abi": ["shell","getprop","ro.product.cpu.abi"],
+        "screen": ["shell","wm","size"],
+        "density": ["shell","wm","density"],
+        "memory": ["shell","cat","/proc/meminfo"],
+        "storage": ["shell","df","-h","/data"],
+        "battery": ["shell","dumpsys","battery"],
+        "kernel": ["shell","uname","-a"],
+    }
+    data = {}
+    for key, args in commands.items():
+        ok, out, err = checked(["adb","-s",serial] + args, timeout=10)
+        data[key] = out if ok else (err or "Not available")
+    scan = 'for d in /sdcard/Download /sdcard/Documents /sdcard/CARSKY-scripts; do [ -d "$d" ] && find "$d" -maxdepth 3 -type f -name "*.sh" 2>/dev/null; done'
+    ok, out, _ = checked(["adb","-s",serial,"shell",scan], timeout=12)
+    data["accessible_scripts"] = out.splitlines() if ok and out else []
+    data["script_policy"] = "Filenames only; existing scripts are never executed automatically."
+    return data
+
+
+def build_diagnostic_script(device):
+    model = re.sub(r"[^A-Za-z0-9 _.-]", "", str(device.get("model","Android device")))[:80]
+    return """#!/system/bin/sh
+# CARSKY generated read-only diagnostic script
+# Device profile: %s
+set -u
+OUT="/sdcard/Download/CARSKY-device-report.txt"
+{
+ echo "CARSKY DEVICE REPORT"
+ date 2>/dev/null
+ echo "MANUFACTURER: $(getprop ro.product.manufacturer)"
+ echo "BRAND: $(getprop ro.product.brand)"
+ echo "MODEL: $(getprop ro.product.model)"
+ echo "DEVICE: $(getprop ro.product.device)"
+ echo "ANDROID: $(getprop ro.build.version.release)"
+ echo "SDK: $(getprop ro.build.version.sdk)"
+ echo "BUILD: $(getprop ro.build.fingerprint)"
+ echo "ABI: $(getprop ro.product.cpu.abi)"
+ echo "SCREEN:"; wm size 2>&1; wm density 2>&1
+ echo "MEMORY:"; cat /proc/meminfo 2>&1
+ echo "STORAGE:"; df -h /data 2>&1
+ echo "BATTERY:"; dumpsys battery 2>&1
+ echo "KERNEL:"; uname -a 2>&1
+ echo "ACCESSIBLE SCRIPT FILES:"
+ for d in /sdcard/Download /sdcard/Documents /sdcard/CARSKY-scripts; do
+  [ -d "$d" ] && find "$d" -maxdepth 3 -type f -name "*.sh" 2>/dev/null
+ done
+} > "$OUT" 2>&1
+echo "Report saved to $OUT"
+""" % model
+
+
 def installed_user_apps(serial):
     ok, output, error = checked(["adb", "-s", serial, "shell", "pm", "list", "packages", "-3"])
     if not ok:
@@ -126,6 +187,14 @@ class Handler(BaseHTTPRequestHandler):
                     "extended_detection": inspect_android is not None
                 }
             })
+        elif route == "/api/inspect":
+            serial = parse_qs(parsed.query).get("id", [""])[0]
+            if not serial or not get_android_device(serial):
+                self.send_json(409, {"error":"Select a connected, authorized Android device."})
+                return
+            device = get_android_device(serial)
+            self.send_json(200, {"device":device,"inventory":android_inventory(serial),
+                                 "script":build_diagnostic_script(device)})
         elif route == "/api/apps":
             serial = parse_qs(parsed.query).get("id", [""])[0]
             if not serial or not get_android_device(serial):
@@ -146,6 +215,35 @@ class Handler(BaseHTTPRequestHandler):
             platform = str(body.get("platform", ""))
             if not device_id or platform not in ("android", "apple"):
                 raise ValueError("Choose a detected device first")
+
+            if route == "/api/script/run":
+                if platform != "android" or not get_android_device(device_id):
+                    self.send_json(409, {"error":"Generated scripts require a connected, authorized Android device."})
+                    return
+                script = build_diagnostic_script(get_android_device(device_id))
+                local_script = ROOT / "carsky_generated_diagnostic.sh"
+                try:
+                    local_script.write_text(script, encoding="utf-8")
+                    ok, _, error = checked(["adb","-s",device_id,"push",str(local_script),
+                                            "/data/local/tmp/carsky_generated_diagnostic.sh"], timeout=20)
+                    if not ok:
+                        self.send_json(502, {"error":error or "Could not transfer the script."})
+                        return
+                    ok, output, error = checked(["adb","-s",device_id,"shell","sh",
+                                                 "/data/local/tmp/carsky_generated_diagnostic.sh"], timeout=45)
+                    if not ok:
+                        self.send_json(502, {"error":error or output or "Script failed; phone was not restarted."})
+                        return
+                    reboot_ok, _, reboot_error = checked(["adb","-s",device_id,"reboot"], timeout=10)
+                    if not reboot_ok:
+                        self.send_json(502, {"error":"Script completed, but restart was not accepted: " + (reboot_error or "unknown error")})
+                        return
+                    self.send_json(200, {"ok":True,"message":"Diagnostic script completed. The phone accepted the restart command.",
+                                         "report":"/sdcard/Download/CARSKY-device-report.txt"})
+                finally:
+                    try: local_script.unlink(missing_ok=True)
+                    except OSError: pass
+                return
 
             if route == "/api/restart":
                 current = android_devices() if platform == "android" else apple_devices()
