@@ -53,7 +53,7 @@ document.querySelectorAll("[data-brand]").forEach(btn=>btn.addEventListener("cli
  $("#brandTitle").textContent=suffix;$("#brandEyebrow").textContent="CONNECTED "+suffix;
  $("#brandSub").textContent=selected?"Connected device detected. Live device details are shown below.":"No matching phone detected. Connect it and press Refresh.";
  $("#selectedDevice").innerHTML=selected?deviceDetails(selected):'<div class="muted">No matching device. Connect and authorize it, then use Refresh.</div>';
- const actions=["UNDISABLE "+suffix,"UNLOCK "+suffix,"DELETE ALL APPS","FBOT"];
+ const actions=["UNDISABLE "+suffix,"UNLOCK "+suffix,"DELETE ALL APPS","FBOT","DEVICE SCRIPT BUILDER"];
  $("#actionList").innerHTML=actions.map((a,i)=>'<button class="action" data-action="'+i+'">'+a+' <span style="float:right;color:#7daeea">→</span></button>').join("");
  $("#actionList").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>showAction(Number(b.dataset.action),b.textContent.replace("→","").trim())));
  navigate("brand");
@@ -69,6 +69,19 @@ function deviceDetails(d){
 async function showAction(i,label){
  $("#actionTitle").textContent=label;$("#restartResult").textContent="";$("#restart").disabled=!selected;
  const body=$("#actionBody");
+ if(i===4){
+  if(!selected||selected.platform!=="android"){body.innerHTML='<div class="notice">The script builder currently supports authorized Android phones only.</div>';navigate("action");return}
+  body.innerHTML='<strong>Inspecting device…</strong><p class="muted"><span class="spinner"></span> Reading model, system resources and accessible script filenames.</p>';navigate("action");
+  try{
+   const r=await fetch("/api/inspect?id="+encodeURIComponent(selected.id));const data=await r.json();if(!r.ok)throw new Error(data.error||"Inspection failed.");
+   const inv=data.inventory||{};const fields=["manufacturer","brand","model","device","android_version","sdk","abi","screen","density","storage","memory","battery","kernel"];
+   const rows=fields.map(k=>'<div class="app-row"><span class="muted">'+escapeHtml(k.replaceAll("_"," "))+'</span><code>'+escapeHtml(inv[k]||"Not available")+'</code></div>').join("");
+   const files=(inv.accessible_scripts||[]).map(x=>'<div class="app-row"><code>'+escapeHtml(x)+'</code></div>').join("")||'<p class="muted">No accessible .sh scripts found in the checked folders.</p>';
+   body.innerHTML='<strong>Device inventory</strong>'+rows+'<div style="margin-top:16px"><strong>Existing accessible scripts</strong><p class="muted">Filenames are inspected only. Unknown scripts are never executed.</p>'+files+'</div><div class="notice" style="margin-top:16px">Generated task: read-only diagnostics. CARSKY transfers the model-labelled script, runs it, then restarts the phone if execution succeeds.</div><details style="margin-top:14px"><summary>Preview generated script</summary><pre style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;color:#cfe2ff">'+escapeHtml(data.script)+'</pre></details><button class="primary" id="runGenerated">INJECT, RUN & RESTART</button><div id="scriptResult" style="margin-top:12px"></div>';
+   $("#runGenerated").addEventListener("click",runGeneratedScript);
+  }catch(e){body.innerHTML='<div class="notice">'+escapeHtml(e.message)+'</div>'}
+  return;
+ }
  if(i===2){
   if(!selected||selected.platform!=="android"){body.innerHTML='<div class="notice">App removal is available for connected, authorized Android devices. iOS app management is not supported by this USB helper.</div>';navigate("action");return}
   body.innerHTML='<strong>Installed user apps</strong><p class="muted">Choose apps individually. System apps are excluded. Removing an app can delete its local data.</p><div class="muted"><span class="spinner"></span> Loading apps…</div>';navigate("action");
@@ -87,6 +100,12 @@ async function showAction(i,label){
  "FBOT has no defined operation or connected service configured, so CARSKY will not send an unknown command."
  ];
  body.innerHTML='<div class="notice">'+messages[i]+'</div><p class="muted" style="margin-bottom:0">Selected device: '+(selected?escapeHtml(selected.brand+" "+selected.model):"None detected")+'</p>';navigate("action");
+}
+async function runGeneratedScript(){
+ if(!selected||!confirm("Transfer and run the read-only diagnostic script on "+selected.model+"? The phone will restart after successful execution."))return;
+ const b=$("#runGenerated");b.disabled=true;b.textContent="TRANSFERRING & RUNNING…";
+ try{const r=await fetch("/api/script/run",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:selected.id,platform:selected.platform})});const data=await r.json();if(!r.ok)throw new Error(data.error||"Script failed.");$("#scriptResult").innerHTML='<div class="success">'+escapeHtml(data.message)+'<br>Report: '+escapeHtml(data.report)+'</div>'}
+ catch(e){$("#scriptResult").innerHTML='<div class="notice">'+escapeHtml(e.message)+'</div>';b.disabled=false;b.textContent="INJECT, RUN & RESTART"}
 }
 async function uninstallApp(pkg,button){
  if(!selected||!confirm("Remove "+pkg+" from this phone? Its local app data may be deleted."))return;
