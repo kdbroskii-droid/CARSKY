@@ -231,7 +231,7 @@ class Handler(BaseHTTPRequestHandler):
                 package_path = run(["adb","-s",device_id,"shell","pm","path","com.carsky.verify"])
                 if not package_path:
                     PHONE_CHALLENGES.pop(device_id, None)
-                    self.send_json(409, {"error":"Install the CARSKY Verification companion APK first. Download the carskey-verification-apk artifact from this repository's Actions run, then install it with: adb install companion-debug.apk"})
+                    self.send_json(409, {"error":"Install the CARSKY Verification companion APK first. Download the carsky-verification-apk artifact from this repository's Actions run, then install it with: adb install companion-debug.apk"})
                     return
                 ok, output, error = checked(["adb","-s",device_id,"shell","am","start","-W",
                                              "-n","com.carsky.verify/.VerificationActivity",
