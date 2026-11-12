@@ -4,10 +4,12 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import shutil
 import subprocess
+from pathlib import Path
 from urllib.parse import urlparse
 
 HOST = "127.0.0.1"
 PORT = 8765
+ROOT = Path(__file__).resolve().parent
 
 
 def run(args, timeout=8):
@@ -55,7 +57,18 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(raw)
 
     def do_GET(self):
-        if urlparse(self.path).path == "/api/devices":
+        route = urlparse(self.path).path
+        if route == "/":
+            try:
+                raw = (ROOT / "index.html").read_bytes()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(raw)))
+                self.end_headers()
+                self.wfile.write(raw)
+            except OSError:
+                self.send_json(500, {"error": "index.html is missing"})
+        elif route == "/api/devices":
             self.send_json(200, {
                 "devices": android_devices() + apple_devices(),
                 "tools": {
